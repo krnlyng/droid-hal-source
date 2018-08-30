@@ -142,6 +142,7 @@ cp -ar /vendor .
 %endif
 
 %build
+rm -rf $RPM_BUILD_ROOT
 
 # We'll hardcode the device/variant information into the droid-make
 # script This isn't trivially installable into the ubu-chroot so
@@ -155,10 +156,6 @@ cat <<"EOF" > droid-make
 
 exec ubu-chroot -r /srv/mer/sdks/ubu "%{?pre_actions}; source build/envsetup.sh; lunch %{?lunch_device}%{!?lunch_device:%{device}}%{?device_variant}; make $*"
 EOF
-
-################
-%install
-rm -rf $RPM_BUILD_ROOT
 
 # Support the building of src-* rpms and srcutils if they're wanted
 %if 0%{?dhs_trees:1}
@@ -185,6 +182,11 @@ mkdir tmp/
 find %android_root -maxdepth 1 \( -type f -or -type l \) -print -exec mv {} $RPM_BUILD_ROOT/home/abuild/src/droid/ \; | sed 's ^%android_root /home/abuild/src/droid ' >> tmp/rootdir.files
 
 %endif
+
+###############################################################
+# avoid using %install in order to avoid dependency checks in
+# rpmbuild which break if android contains test files which are
+# intentionally broken for tests.
 
 ################################################################
 # Begin files section
